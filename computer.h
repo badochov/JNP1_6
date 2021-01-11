@@ -3,25 +3,37 @@
 
 #include "ooasm.h"
 #include <ostream>
+#include "computer_components.h"
+
+class Processor : public ProcessorAbstract {
+public:
+    explicit Processor(Memory& mem) : ProcessorAbstract(mem) {}
+    void execute(Instruction& ins) {
+        ins.execute();
+    }
+};
+
 
 class Computer {
+private:
+    Memory mem;
+    Processor proc;
 public:
-    Computer(size_t s){
-        mem = vector<mem_t>(s, 0);
-    }
-
-    void boot(const Program &p) {
+    explicit Computer(size_t mem_size) : mem(mem_size), proc(mem) {
 
     }
 
-    void memory_dump(const std::ostream &os) {
-        for(mem_t el : mem){
-            os<<el<<" ";
+    void boot(const Program& p) {
+        for (const Instruction& ins : p) {
+            proc.
+        }
+    }
+
+    void memory_dump(const std::ostream& os) {
+        for (size_t i = 0; i < mem.size(); ++i) {
+            os << static_cast<long long>(mem.at(i)) << " ";
         }
     };
-private:
-    using mem_t = int_fast64_t;
-    vector <mem_t> mem;
 };
 
 #endif //JNP1_6_COMPUTER_H
