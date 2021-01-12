@@ -5,6 +5,7 @@
 
 class Instruction {
 public:
+    virtual ~Instruction() = default;
     virtual void execute(ProcessorAbstract &, Memory &) const = 0;
 
     virtual void declare(Memory &) const {};

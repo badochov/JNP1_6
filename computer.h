@@ -23,15 +23,13 @@ private:
     Memory mem;
     Processor proc;
 public:
-    explicit Computer(size_t mem_size) : mem(mem_size), proc(mem) {
-
-    }
+    explicit Computer(size_t mem_size) : mem(mem_size), proc(mem) {}
 
     void boot(const Program &p) {
-        for (const Instruction *ins : p) {
+        for (const std::shared_ptr<Instruction>& ins : p) {
             proc.declare(*ins);
         }
-        for (const Instruction *ins : p) {
+        for (const std::shared_ptr<Instruction>& ins : p) {
             proc.execute(*ins);
         }
     }

@@ -4,14 +4,18 @@
 #include <vector>
 #include <cstring>
 #include "instruction.h"
+#include <iterator>
 
 class Program {
 private:
-    using ins_t = const std::vector<Instruction *>;
+    using ins_t = const std::vector<std::shared_ptr<Instruction>>;
 public:
     using iterator = ins_t::const_iterator;
 
-    Program(const std::initializer_list<Instruction *> &instructions) : ins(instructions) {}
+    Program(const std::initializer_list<std::shared_ptr<Instruction>>& instructions)
+            : ins(instructions) {}
+//            : ins(std::make_move_iterator(instructions.begin()),
+//                  std::make_move_iterator(instructions.end())) {}
 
     [[nodiscard]] iterator begin() const {
         return ins.begin();
@@ -41,12 +45,12 @@ public:
     virtual void set(Memory &, word_t) const = 0;
 };
 
-class PValue : public Value {
+class RValue : public Value {
 };
 
-class Mem : public PValue, public LValue {
+class Mem : public RValue, public LValue {
 public:
-    explicit Mem(const PValue *_addr) : addr(_addr) {}
+    explicit Mem(std::unique_ptr<RValue> _addr) : addr(std::move(_addr)) {}
 
     [[nodiscard]] word_t get(const Memory &memory) const override {
         return memory.at(get_addr(memory));
@@ -61,10 +65,10 @@ private:
         return addr->get(memory);
     }
 
-    const PValue *addr;
+    std::unique_ptr<RValue> addr;
 };
 
-class Num : public PValue {
+class Num : public RValue {
     word_t num;
 public:
     explicit Num(word_t _num) : num(_num) {}
@@ -78,7 +82,6 @@ public:
 class ID {
     constexpr static size_t MAX_LEN = 10;
     constexpr static size_t MIN_LEN = 1;
-
 
     class InvalidId : std::exception {
         [[nodiscard]] const char* what() const noexcept override {
@@ -105,7 +108,7 @@ private:
     std::unique_ptr<Memory::id_t> id;
 };
 
-class LEA : public PValue {
+class LEA : public RValue {
 public:
     explicit LEA(ID::id_t _id) : id(_id) {}
 
@@ -117,31 +120,32 @@ private:
     ID id;
 };
 
-Num *num(word_t word);
+std::unique_ptr<Num> num(word_t word);
 
-Mem *mem(const PValue *addr);
+std::unique_ptr<Mem> mem(std::unique_ptr<RValue> addr);
 
-LEA *lea(ID::id_t id);
+std::unique_ptr<LEA> lea(ID::id_t id);
 
-Instruction *data(ID::id_t id, const PValue *value);
+std::unique_ptr<Instruction> data(ID::id_t id, std::unique_ptr<RValue> value);
 
-Instruction *mov(const LValue *dst, const PValue *src);
+std::unique_ptr<Instruction> mov(std::unique_ptr<LValue> dst, std::unique_ptr<RValue> src);
 
-Instruction *add(const LValue *arg1, const PValue *arg2);
+std::unique_ptr<Instruction> add(std::unique_ptr<LValue> arg1, std::unique_ptr<RValue> arg2);
 
-Instruction *sub(const LValue *arg1, const PValue *arg2);
+std::unique_ptr<Instruction> sub(std::unique_ptr<LValue> arg1, std::unique_ptr<RValue> arg2);
 
-Instruction *inc(const LValue *arg);
+std::unique_ptr<Instruction> inc(std::unique_ptr<LValue> arg);
 
-Instruction *dec(const LValue *arg);
+std::unique_ptr<Instruction> dec(std::unique_ptr<LValue> arg);
 
-Instruction *one(const LValue *arg);
+std::unique_ptr<Instruction> one(std::unique_ptr<LValue> arg);
 
-Instruction *onez(const LValue *arg);
+std::unique_ptr<Instruction> onez(std::unique_ptr<LValue> arg);
 
-Instruction *ones(const LValue *arg);
+std::unique_ptr<Instruction> ones(std::unique_ptr<LValue> arg);
 
-inline Program program(const std::initializer_list<Instruction *> &instructions) {
+
+inline Program program(std::initializer_list<std::shared_ptr<Instruction>> instructions) {
     return Program(instructions);
 }
 

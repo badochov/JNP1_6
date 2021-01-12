@@ -3,9 +3,9 @@
 
 class Data : public Instruction {
     ID id;
-    const std::unique_ptr<PValue> value;
+    const std::unique_ptr<RValue> value;
 public:
-    Data(ID::id_t id, std::unique_ptr<PValue> value) : id(id), value(std::move(value)) {}
+    Data(ID::id_t id, std::unique_ptr<RValue> value) : id(id), value(std::move(value)) {}
 
     void execute(ProcessorAbstract &, Memory &memory) const override {}
 
@@ -16,9 +16,9 @@ public:
 
 class Mov : public Instruction {
     const std::unique_ptr<LValue> dst;
-    const std::unique_ptr<PValue> src;
+    const std::unique_ptr<RValue> src;
 public:
-    Mov(std::unique_ptr<LValue> dst, std::unique_ptr<PValue> src)
+    Mov(std::unique_ptr<LValue> dst, std::unique_ptr<RValue> src)
       : dst(std::move(dst)), src(std::move(src)) {}
 
     void execute(ProcessorAbstract &, Memory &memory) const override {
@@ -28,7 +28,7 @@ public:
 
 class ArithmeticOperation : public Instruction {
     const std::unique_ptr<LValue> arg1;
-    const std::unique_ptr<PValue> arg2;
+    const std::unique_ptr<RValue> arg2;
 
     void set_value(word_t res, Memory &memory) const {
         arg1->set(memory, res);
@@ -42,7 +42,7 @@ class ArithmeticOperation : public Instruction {
     [[nodiscard]] virtual word_t function(word_t arg1, word_t arg2) const = 0;
 
 protected:
-    ArithmeticOperation(std::unique_ptr<LValue> arg1, std::unique_ptr<PValue> arg2)
+    ArithmeticOperation(std::unique_ptr<LValue> arg1, std::unique_ptr<RValue> arg2)
       : arg1(std::move(arg1)), arg2(std::move(arg2)) {}
 
 public:
@@ -59,7 +59,7 @@ class Add : public ArithmeticOperation {
     }
 
 public:
-    Add(std::unique_ptr<LValue> arg1, std::unique_ptr<PValue> arg2)
+    Add(std::unique_ptr<LValue> arg1, std::unique_ptr<RValue> arg2)
       : ArithmeticOperation(std::move(arg1), std::move(arg2)) {}
 };
 
@@ -69,15 +69,15 @@ class Sub : public ArithmeticOperation {
     }
 
 public:
-    Sub(std::unique_ptr<LValue> arg1, std::unique_ptr<PValue> arg2)
+    Sub(std::unique_ptr<LValue> arg1, std::unique_ptr<RValue> arg2)
       : ArithmeticOperation(std::move(arg1), std::move(arg2)) {}
 };
 
 class One : public Instruction {
   private:
-    const LValue *lValue;
+    std::unique_ptr<LValue> lValue;
   public:
-    explicit One(const LValue *lValue) : lValue(lValue) {}
+    explicit One(std::unique_ptr<LValue> lValue) : lValue(std::move(lValue)) {}
 
     void execute(ProcessorAbstract &processorAbstract, Memory &memory) const override {
         if (should_set(processorAbstract)) {
@@ -95,7 +95,7 @@ protected:
 class OneZ : public One {
 
 public:
-    explicit OneZ(const LValue *lValue) : One(lValue) {}
+    explicit OneZ(std::unique_ptr<LValue> lValue) : One(std::move(lValue)) {}
 
 protected:
     [[nodiscard]] bool should_set(const ProcessorAbstract &processorAbstract) const override {
@@ -106,7 +106,7 @@ protected:
 class OneS : public One {
 
 public:
-    explicit OneS(const LValue *lValue) : One(lValue) {}
+    explicit OneS(std::unique_ptr<LValue> lValue) : One(std::move(lValue)) {}
 
 protected:
     [[nodiscard]] bool should_set(const ProcessorAbstract &processorAbstract) const override {
@@ -114,50 +114,50 @@ protected:
     }
 };
 
-Num *num(word_t word) {
-    return new Num(word);
+std::unique_ptr<Num> num(word_t word) {
+    return std::make_unique<Num>(word);
 }
 
-Mem *mem(const PValue *addr) {
-    return new Mem(addr);
+std::unique_ptr<Mem> mem(std::unique_ptr<RValue> addr) {
+    return std::make_unique<Mem>(std::move(addr));
 }
 
-LEA *lea(ID::id_t id) {
-    return new LEA(id);
+std::unique_ptr<LEA> lea(ID::id_t id) {
+    return std::make_unique<LEA>(id);
 }
 
-Instruction *data(ID::id_t id, const PValue *value) {
-    return new Data(id, value);
+std::unique_ptr<Instruction> data(ID::id_t id, std::unique_ptr<RValue> value) {
+    return std::make_unique<Data>(id, std::move(value));
 }
 
-Instruction *mov(const LValue *dst, const PValue *src) {
-    return new Mov(dst, src);
+std::unique_ptr<Instruction> mov(std::unique_ptr<LValue> dst, std::unique_ptr<RValue> src) {
+    return std::make_unique<Mov>(std::move(dst), std::move(src));
 }
 
-Instruction *add(const LValue *arg1, const PValue *arg2) {
-    return new Add(arg1, arg2);
+std::unique_ptr<Instruction> add(std::unique_ptr<LValue> arg1, std::unique_ptr<RValue> arg2) {
+    return std::make_unique<Add>(std::move(arg1), std::move(arg2));
 }
 
-Instruction *sub(const LValue *arg1, const PValue *arg2) {
-    return new Sub(arg1, arg2);
+std::unique_ptr<Instruction> sub(std::unique_ptr<LValue> arg1, std::unique_ptr<RValue> arg2) {
+    return std::make_unique<Sub>(std::move(arg1), std::move(arg2));
 }
 
-Instruction *inc(const LValue *arg) {
-    return new Add(arg, num(1));
+std::unique_ptr<Instruction> inc(std::unique_ptr<LValue> arg) {
+    return std::make_unique<Add>(std::move(arg), num(1));
 }
 
-Instruction *dec(const LValue *arg) {
-    return new Sub(arg, num(1));
+std::unique_ptr<Instruction> dec(std::unique_ptr<LValue> arg) {
+    return std::make_unique<Sub>(std::move(arg), num(1));
 }
 
-Instruction *one(const LValue *arg) {
-    return new One(arg);
+std::unique_ptr<Instruction> one(std::unique_ptr<LValue> arg) {
+    return std::make_unique<One>(std::move(arg));
 }
 
-Instruction *onez(const LValue *arg) {
-    return new OneZ(arg);
+std::unique_ptr<Instruction> onez(std::unique_ptr<LValue> arg) {
+    return std::make_unique<OneZ>(std::move(arg));
 }
 
-Instruction *ones(const LValue *arg) {
-    return new OneS(arg);
+std::unique_ptr<Instruction> ones(std::unique_ptr<LValue> arg) {
+    return std::make_unique<OneS>(std::move(arg));
 }
