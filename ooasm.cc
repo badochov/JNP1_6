@@ -3,12 +3,11 @@
 
 class Data : public Instruction {
     ID id;
-    const PValue *value;
+    const std::unique_ptr<PValue> value;
 public:
-    Data(ID::id_t id, const PValue *value) : id(id), value(value) {}
+    Data(ID::id_t id, std::unique_ptr<PValue> value) : id(id), value(std::move(value)) {}
 
-    void execute(ProcessorAbstract &, Memory &memory) const override {
-    }
+    void execute(ProcessorAbstract &, Memory &memory) const override {}
 
     void declare(Memory &memory) const override {
         memory.add_variable(id.get(), value->get(memory));
@@ -16,10 +15,11 @@ public:
 };
 
 class Mov : public Instruction {
-    const LValue *dst;
-    const PValue *src;
+    const std::unique_ptr<LValue> dst;
+    const std::unique_ptr<PValue> src;
 public:
-    Mov(const LValue *dst, const PValue *src) : dst(dst), src(src) {}
+    Mov(std::unique_ptr<LValue> dst, std::unique_ptr<PValue> src)
+      : dst(std::move(dst)), src(std::move(src)) {}
 
     void execute(ProcessorAbstract &, Memory &memory) const override {
         dst->set(memory, src->get(memory));
@@ -27,8 +27,8 @@ public:
 };
 
 class ArithmeticOperation : public Instruction {
-    const LValue *arg1;
-    const PValue *arg2;
+    const std::unique_ptr<LValue> arg1;
+    const std::unique_ptr<PValue> arg2;
 
     void set_value(word_t res, Memory &memory) const {
         arg1->set(memory, res);
@@ -42,10 +42,10 @@ class ArithmeticOperation : public Instruction {
     [[nodiscard]] virtual word_t function(word_t arg1, word_t arg2) const = 0;
 
 protected:
-    ArithmeticOperation(const LValue *arg1, const PValue *arg2) : arg1(arg1), arg2(arg2) {}
+    ArithmeticOperation(std::unique_ptr<LValue> arg1, std::unique_ptr<PValue> arg2)
+      : arg1(std::move(arg1)), arg2(std::move(arg2)) {}
 
 public:
-
     void execute(ProcessorAbstract &processorAbstract, Memory &memory) const override {
         word_t res = function(arg1->get(memory), arg2->get(memory));
         set_flags(res, processorAbstract);
@@ -59,7 +59,8 @@ class Add : public ArithmeticOperation {
     }
 
 public:
-    Add(const LValue *arg1, const PValue *arg2) : ArithmeticOperation(arg1, arg2) {}
+    Add(std::unique_ptr<LValue> arg1, std::unique_ptr<PValue> arg2)
+      : ArithmeticOperation(std::move(arg1), std::move(arg2)) {}
 };
 
 class Sub : public ArithmeticOperation {
@@ -68,13 +69,14 @@ class Sub : public ArithmeticOperation {
     }
 
 public:
-    Sub(const LValue *arg1, const PValue *arg2) : ArithmeticOperation(arg1, arg2) {}
+    Sub(std::unique_ptr<LValue> arg1, std::unique_ptr<PValue> arg2)
+      : ArithmeticOperation(std::move(arg1), std::move(arg2)) {}
 };
 
 class One : public Instruction {
-
+  private:
     const LValue *lValue;
-public:
+  public:
     explicit One(const LValue *lValue) : lValue(lValue) {}
 
     void execute(ProcessorAbstract &processorAbstract, Memory &memory) const override {

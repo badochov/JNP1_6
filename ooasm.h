@@ -81,7 +81,7 @@ class ID {
 
 
     class InvalidId : std::exception {
-        [[nodiscard]] const char *what() const noexcept override {
+        [[nodiscard]] const char* what() const noexcept override {
             return "Invalid ID! Id should be between 1 and 10 characters";
         }
     };

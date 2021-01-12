@@ -11,7 +11,7 @@ public:
     using id_t = std::string_view;
 private:
     class OutOfRangeMemoryAccessException : std::exception {
-        [[nodiscard]] const char *what() const noexcept override {
+        [[nodiscard]] const char* what() const noexcept override {
             return "Address larger than size of memory cannot be accessed!";
         }
     };
