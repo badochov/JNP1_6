@@ -10,16 +10,23 @@ public:
     using word_t = int64_t;
     using id_t = std::string_view;
 private:
-    class OutOfRangeMemoryAccessException : std::exception {
-        [[nodiscard]] const char* what() const noexcept override {
+    class OutOfRangeMemoryAccessException : public std::exception {
+        [[nodiscard]] const char *what() const noexcept override {
             return "Address larger than size of memory cannot be accessed!";
+        }
+    };
+
+    class TooManyVariablesException : public std::exception {
+        [[nodiscard]] const char *what() const noexcept override {
+            return "To many variables declarations!";
         }
     };
 
     using mem_t = word_t[];
     size_t _size;
+    size_t variables_count = 0;
     std::unique_ptr<mem_t> mem;
-    std::unordered_map<std::string_view , size_t> vars;
+    std::unordered_map<std::string_view, size_t> vars;
 public:
     explicit Memory(size_t size) : _size(size), mem(std::make_unique<mem_t>(size)) {
         for (size_t i = 0; i < _size; ++i) {
@@ -47,9 +54,14 @@ public:
     }
 
     void add_variable(id_t var_name, word_t word) {
-        size_t idx = vars.size();
-        vars[var_name] = idx;
-        set(idx, word);
+        if (variables_count == size()) {
+            throw TooManyVariablesException();
+        }
+        set(variables_count, word);
+        if (vars.count(var_name) == 0) {
+            vars[var_name] = variables_count;
+        }
+        variables_count++;
     }
 };
 
