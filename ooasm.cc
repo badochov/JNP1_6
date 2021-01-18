@@ -3,15 +3,9 @@
 
 class Data : public Instruction {
     ID id;
-<<<<<<< HEAD
     const std::unique_ptr<Num> value;
 public:
     Data(ID::id_t id, std::unique_ptr<Num> value) : id(id), value(std::move(value)) {}
-=======
-    const std::unique_ptr<RValue> value;
-public:
-    Data(ID::id_t id, std::unique_ptr<RValue> value) : id(id), value(std::move(value)) {}
->>>>>>> c707a5b4d15c8f8bfee6fe4bede25b9782c760a2
 
     void execute(ProcessorAbstract &, Memory &memory) const override {}
 
@@ -132,11 +126,7 @@ std::unique_ptr<LEA> lea(ID::id_t id) {
     return std::make_unique<LEA>(id);
 }
 
-<<<<<<< HEAD
 std::unique_ptr<Instruction> data(ID::id_t id, std::unique_ptr<Num> value) {
-=======
-std::unique_ptr<Instruction> data(ID::id_t id, std::unique_ptr<RValue> value) {
->>>>>>> c707a5b4d15c8f8bfee6fe4bede25b9782c760a2
     return std::make_unique<Data>(id, std::move(value));
 }
 
