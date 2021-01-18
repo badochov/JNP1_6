@@ -12,7 +12,7 @@ private:
 public:
     using iterator = ins_t::const_iterator;
 
-    Program(const std::initializer_list<std::shared_ptr<Instruction>> &instructions)
+    Program(const std::initializer_list<std::shared_ptr<Instruction>>& instructions)
             : ins(instructions) {}
 //            : ins(std::make_move_iterator(instructions.begin()),
 //                  std::make_move_iterator(instructions.end())) {}
