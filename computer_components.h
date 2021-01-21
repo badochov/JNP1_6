@@ -26,6 +26,9 @@ public:
     }
 
     void set(address_t i, word_t new_val) {
+        if (i >= size()) {
+            throw OutOfRangeMemoryAccessException();
+        }
         mem[i] = new_val;
     }
 

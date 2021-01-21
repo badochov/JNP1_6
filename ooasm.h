@@ -39,10 +39,14 @@ public:
     using id_t = const char *;
 
     explicit ID(id_t _id) {
+        if(_id == nullptr) {
+            throw InvalidId();
+        }
         size_t len = strlen(_id);
         if (len < MIN_LEN || len > MAX_LEN) {
             throw InvalidId();
         }
+
         id = std::make_unique<Memory::id_t>(_id);
     }
 
@@ -51,7 +55,7 @@ public:
     }
 
 private:
-    class InvalidId : std::exception {
+    class InvalidId : public std::exception {
         [[nodiscard]] const char *what() const noexcept override {
             return "Invalid ID! Id should be between 1 and 10 characters";
         }
