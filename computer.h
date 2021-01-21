@@ -7,7 +7,7 @@
 
 class Processor : public ProcessorAbstract {
 public:
-    explicit Processor(Memory &mem) : ProcessorAbstract(mem) {}
+    explicit Processor(Memory &_mem) : ProcessorAbstract(_mem) {}
 
     void execute(const Instruction &ins) {
         ins.execute(*this, mem);
