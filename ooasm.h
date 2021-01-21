@@ -6,9 +6,10 @@
 #include "instruction.h"
 #include <iterator>
 
-using word_t = Memory::word_t;
-
-using address_t = Memory::address_t;
+namespace {
+    using word_t = Memory::word_t;
+    using address_t = Memory::address_t;
+}
 
 class Program {
     using ins_t = const std::vector<std::shared_ptr<Instruction>>;
@@ -29,11 +30,38 @@ public:
     }
 };
 
+class ID {
+    constexpr static size_t MAX_LEN = 10;
+    constexpr static size_t MIN_LEN = 1;
+    std::unique_ptr<Memory::id_t> id;
+
+public:
+    using id_t = const char *;
+
+    explicit ID(id_t _id) {
+        size_t len = strlen(_id);
+        if (len < MIN_LEN || len > MAX_LEN) {
+            throw InvalidId();
+        }
+        id = std::make_unique<Memory::id_t>(_id);
+    }
+
+    [[nodiscard]] Memory::id_t get() const {
+        return *id;
+    }
+
+private:
+    class InvalidId : std::exception {
+        [[nodiscard]] const char *what() const noexcept override {
+            return "Invalid ID! Id should be between 1 and 10 characters";
+        }
+    };
+};
+
 class Value {
 public:
     virtual ~Value() = default;
 };
-
 
 class RValue : public Value {
 public:
@@ -52,7 +80,6 @@ public:
 
     ~LValue() override = default;
 };
-
 
 class Mem : public LValue {
 public:
@@ -85,35 +112,6 @@ public:
     }
 };
 
-
-class ID {
-    constexpr static size_t MAX_LEN = 10;
-    constexpr static size_t MIN_LEN = 1;
-    std::unique_ptr<Memory::id_t> id;
-
-public:
-    using id_t = const char *;
-
-    explicit ID(id_t _id) {
-        size_t len = strlen(_id);
-        if (len < MIN_LEN || len > MAX_LEN) {
-            throw InvalidId();
-        }
-        id = std::make_unique<Memory::id_t>(_id);
-    }
-
-    [[nodiscard]] Memory::id_t get() const {
-        return *id;
-    }
-
-private:
-    class InvalidId : std::exception {
-        [[nodiscard]] const char *what() const noexcept override {
-            return "Invalid ID! Id should be between 1 and 10 characters";
-        }
-    };
-};
-
 class LEA : public RValue {
     ID id;
 
@@ -128,6 +126,7 @@ public:
         return get_address(memory);
     }
 };
+
 
 std::unique_ptr<Num> num(word_t word);
 
