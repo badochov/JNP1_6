@@ -6,157 +6,161 @@
 #include "instruction.h"
 #include <iterator>
 
-namespace {
+
+//https://wiki.sei.cmu.edu/confluence/display/cplusplus/DCL59-CPP.+Do+not+define+an+unnamed+namespace+in+a+header+file#:~:text=an%20%23include%20directive.-,Do%20not%20define%20an%20unnamed%20namespace%20in%20a%20header%20file,used%20within%20that%20translation%20unit.
+/*namespace {
     using word_t = Memory::word_t;
     using address_t = Memory::address_t;
-}
+}*/
+namespace ooasm {
+    using word_t = Memory::word_t;
+    using address_t = Memory::address_t;
 
-class Program {
-    using ins_t = const std::vector<std::shared_ptr<Instruction>>;
-    ins_t ins;
+    class Program {
+        using ins_t = const std::vector<std::shared_ptr<Instruction>>;
+        ins_t ins;
 
-public:
-    using iterator = ins_t::const_iterator;
+    public:
+        using iterator = ins_t::const_iterator;
 
-    Program(std::initializer_list<std::shared_ptr<Instruction>> &&instructions)
-            : ins(instructions) {}
+        Program(std::initializer_list<std::shared_ptr<Instruction>> &&instructions)
+                : ins(instructions) {}
 
-    [[nodiscard]] iterator begin() const {
-        return ins.begin();
-    }
-
-    [[nodiscard]] iterator end() const {
-        return ins.end();
-    }
-};
-
-class ID {
-    constexpr static size_t MAX_LEN = 10;
-    constexpr static size_t MIN_LEN = 1;
-    std::unique_ptr<Memory::id_t> id;
-
-public:
-    using id_t = const char *;
-
-    explicit ID(id_t _id) {
-        if(_id == nullptr) {
-            throw InvalidId();
-        }
-        size_t len = strlen(_id);
-        if (len < MIN_LEN || len > MAX_LEN) {
-            throw InvalidId();
+        [[nodiscard]] iterator begin() const {
+            return ins.begin();
         }
 
-        id = std::make_unique<Memory::id_t>(_id);
-    }
-
-    [[nodiscard]] Memory::id_t get() const {
-        return *id;
-    }
-
-private:
-    class InvalidId : public std::exception {
-        [[nodiscard]] const char *what() const noexcept override {
-            return "Invalid ID! Id should be between 1 and 10 characters";
+        [[nodiscard]] iterator end() const {
+            return ins.end();
         }
     };
-};
 
-class Value {
-public:
-    virtual ~Value() = default;
-};
+    class ID {
+        constexpr static size_t MAX_LEN = 10;
+        constexpr static size_t MIN_LEN = 1;
+        std::unique_ptr<Memory::id_t> id;
 
-class RValue : public Value {
-public:
-    [[nodiscard]] virtual word_t get(const Memory &) const = 0;
+    public:
+        using id_t = const char *;
 
-    [[nodiscard]] virtual address_t get_address(const Memory &memory) const {
-        return get(memory);
-    }
+        explicit ID(id_t _id) {
+            if (_id == nullptr) {
+                throw InvalidId();
+            }
+            size_t len = strlen(_id);
+            if (len < MIN_LEN || len > MAX_LEN) {
+                throw InvalidId();
+            }
 
-    ~RValue() override = default;
-};
+            id = std::make_unique<Memory::id_t>(_id);
+        }
 
-class LValue : public RValue {
-public:
-    virtual void set(Memory &, word_t) const = 0;
+        [[nodiscard]] Memory::id_t get() const {
+            return *id;
+        }
 
-    ~LValue() override = default;
-};
+    private:
+        class InvalidId : public std::exception {
+            [[nodiscard]] const char *what() const noexcept override {
+                return "Invalid ID! Id should be between 1 and 10 characters";
+            }
+        };
+    };
 
-class Mem : public LValue {
-public:
-    explicit Mem(std::unique_ptr<RValue> _addr) : addr(std::move(_addr)) {}
+    class Value {
+    public:
+        virtual ~Value() = default;
+    };
 
-    [[nodiscard]] word_t get(const Memory &memory) const override {
-        return memory.at(get_addr(memory));
-    }
+    class RValue : public Value {
+    public:
+        [[nodiscard]] virtual word_t get(const Memory &) const = 0;
 
-    void set(Memory &memory, word_t word) const override {
-        memory.set(get_addr(memory), word);
-    }
+        [[nodiscard]] virtual address_t get_address(const Memory &memory) const {
+            return get(memory);
+        }
 
-private:
-    [[nodiscard]] word_t get_addr(const Memory &memory) const {
-        return addr->get_address(memory);
-    }
+        ~RValue() override = default;
+    };
 
-    std::unique_ptr<RValue> addr;
-};
+    class LValue : public RValue {
+    public:
+        virtual void set(Memory &, word_t) const = 0;
 
-class Num : public RValue {
-    word_t num;
+        ~LValue() override = default;
+    };
 
-public:
-    explicit Num(word_t _num) : num(_num) {}
+    class Mem : public LValue {
+    public:
+        explicit Mem(std::unique_ptr<RValue> _addr) : addr(std::move(_addr)) {}
 
-    [[nodiscard]] word_t get(const Memory &) const override {
-        return num;
-    }
-};
+        [[nodiscard]] word_t get(const Memory &memory) const override {
+            return memory.at(get_addr(memory));
+        }
 
-class LEA : public RValue {
-    ID id;
+        void set(Memory &memory, word_t word) const override {
+            memory.set(get_addr(memory), word);
+        }
 
-public:
-    explicit LEA(ID::id_t _id) : id(_id) {}
+    private:
+        [[nodiscard]] word_t get_addr(const Memory &memory) const {
+            return addr->get_address(memory);
+        }
 
-    [[nodiscard]] address_t get_address(const Memory &memory) const override {
-        return memory.get_variable_address(id.get());
-    }
+        std::unique_ptr<RValue> addr;
+    };
 
-    [[nodiscard]] word_t get(const Memory &memory) const override {
-        return get_address(memory);
-    }
-};
+    class Num : public RValue {
+        word_t num;
 
+    public:
+        explicit Num(word_t _num) : num(_num) {}
 
-std::unique_ptr<Num> num(word_t word);
+        [[nodiscard]] word_t get(const Memory &) const override {
+            return num;
+        }
+    };
 
-std::unique_ptr<Mem> mem(std::unique_ptr<RValue> addr);
+    class LEA : public RValue {
+        ID id;
 
-std::unique_ptr<LEA> lea(ID::id_t id);
+    public:
+        explicit LEA(ID::id_t _id) : id(_id) {}
 
-std::shared_ptr<Instruction> data(ID::id_t id, std::unique_ptr<Num> value);
+        [[nodiscard]] address_t get_address(const Memory &memory) const override {
+            return memory.get_variable_address(id.get());
+        }
 
-std::shared_ptr<Instruction> mov(std::unique_ptr<LValue> dst, std::unique_ptr<RValue> src);
+        [[nodiscard]] word_t get(const Memory &memory) const override {
+            return get_address(memory);
+        }
+    };
+}
 
-std::shared_ptr<Instruction> add(std::unique_ptr<LValue> arg1, std::unique_ptr<RValue> arg2);
+std::unique_ptr<ooasm::Num> num(ooasm::word_t word);
 
-std::shared_ptr<Instruction> sub(std::unique_ptr<LValue> arg1, std::unique_ptr<RValue> arg2);
+std::unique_ptr<ooasm::Mem> mem(std::unique_ptr<ooasm::RValue> addr);
 
-std::shared_ptr<Instruction> inc(std::unique_ptr<LValue> arg);
+std::unique_ptr<ooasm::LEA> lea(ooasm::ID::id_t id);
 
-std::shared_ptr<Instruction> dec(std::unique_ptr<LValue> arg);
+std::shared_ptr<ooasm::Instruction> data(ooasm::ID::id_t id, std::unique_ptr<ooasm::Num> value);
 
-std::shared_ptr<Instruction> one(std::unique_ptr<LValue> arg);
+std::shared_ptr<ooasm::Instruction> mov(std::unique_ptr<ooasm::LValue> dst, std::unique_ptr<ooasm::RValue> src);
 
-std::shared_ptr<Instruction> onez(std::unique_ptr<LValue> arg);
+std::shared_ptr<ooasm::Instruction> add(std::unique_ptr<ooasm::LValue> arg1, std::unique_ptr<ooasm::RValue> arg2);
 
-std::shared_ptr<Instruction> ones(std::unique_ptr<LValue> arg);
+std::shared_ptr<ooasm::Instruction> sub(std::unique_ptr<ooasm::LValue> arg1, std::unique_ptr<ooasm::RValue> arg2);
 
+std::shared_ptr<ooasm::Instruction> inc(std::unique_ptr<ooasm::LValue> arg);
 
-using program = Program;
+std::shared_ptr<ooasm::Instruction> dec(std::unique_ptr<ooasm::LValue> arg);
+
+std::shared_ptr<ooasm::Instruction> one(std::unique_ptr<ooasm::LValue> arg);
+
+std::shared_ptr<ooasm::Instruction> onez(std::unique_ptr<ooasm::LValue> arg);
+
+std::shared_ptr<ooasm::Instruction> ones(std::unique_ptr<ooasm::LValue> arg);
+
+using program = ooasm::Program;
 
 #endif //JNP1_6_OOASM_H
