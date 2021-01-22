@@ -6,20 +6,12 @@
 #include "instruction.h"
 #include <iterator>
 
-
-//https://wiki.sei.cmu.edu/confluence/display/cplusplus/DCL59-CPP.+Do+not+define+an+unnamed+namespace+in+a+header+file#:~:text=an%20%23include%20directive.-,Do%20not%20define%20an%20unnamed%20namespace%20in%20a%20header%20file,used%20within%20that%20translation%20unit.
-/*namespace {
-    using word_t = Memory::word_t;
-    using address_t = Memory::address_t;
-}*/
 namespace ooasm {
     using word_t = Memory::word_t;
     using address_t = Memory::address_t;
 
     class Program {
         using ins_t = const std::vector<std::shared_ptr<Instruction>>;
-        ins_t ins;
-
     public:
         using iterator = ins_t::const_iterator;
 
@@ -33,13 +25,11 @@ namespace ooasm {
         [[nodiscard]] iterator end() const {
             return ins.end();
         }
+    private:
+        ins_t ins;
     };
 
     class ID {
-        constexpr static size_t MAX_LEN = 10;
-        constexpr static size_t MIN_LEN = 1;
-        std::unique_ptr<Memory::id_t> id;
-
     public:
         using id_t = const char *;
 
@@ -60,9 +50,13 @@ namespace ooasm {
         }
 
     private:
+        constexpr static size_t MAX_LEN = 10;
+        constexpr static size_t MIN_LEN = 1;
+        std::unique_ptr<Memory::id_t> id;
+
         class InvalidId : public std::exception {
             [[nodiscard]] const char *what() const noexcept override {
-                return "Invalid ID! Id should be between 1 and 10 characters";
+                return "Invalid ID! ID length should be between 1 and 10 characters";
             }
         };
     };
@@ -80,14 +74,14 @@ namespace ooasm {
             return get(memory);
         }
 
-        ~RValue() override = default;
+        virtual ~RValue() = default;
     };
 
     class LValue : public RValue {
     public:
         virtual void set(Memory &, word_t) const = 0;
 
-        ~LValue() override = default;
+        virtual ~LValue() = default;
     };
 
     class Mem : public LValue {
@@ -111,19 +105,17 @@ namespace ooasm {
     };
 
     class Num : public RValue {
-        word_t num;
-
     public:
         explicit Num(word_t _num) : num(_num) {}
 
         [[nodiscard]] word_t get(const Memory &) const override {
             return num;
         }
+    private:
+        word_t num;
     };
 
     class LEA : public RValue {
-        ID id;
-
     public:
         explicit LEA(ID::id_t _id) : id(_id) {}
 
@@ -134,6 +126,8 @@ namespace ooasm {
         [[nodiscard]] word_t get(const Memory &memory) const override {
             return get_address(memory);
         }
+    private:
+        ID id;
     };
 }
 
@@ -145,11 +139,14 @@ std::unique_ptr<ooasm::LEA> lea(ooasm::ID::id_t id);
 
 std::shared_ptr<ooasm::Instruction> data(ooasm::ID::id_t id, std::unique_ptr<ooasm::Num> value);
 
-std::shared_ptr<ooasm::Instruction> mov(std::unique_ptr<ooasm::LValue> dst, std::unique_ptr<ooasm::RValue> src);
+std::shared_ptr<ooasm::Instruction> mov(std::unique_ptr<ooasm::LValue> dst,
+        std::unique_ptr<ooasm::RValue> src);
 
-std::shared_ptr<ooasm::Instruction> add(std::unique_ptr<ooasm::LValue> arg1, std::unique_ptr<ooasm::RValue> arg2);
+std::shared_ptr<ooasm::Instruction> add(std::unique_ptr<ooasm::LValue> arg1,
+        std::unique_ptr<ooasm::RValue> arg2);
 
-std::shared_ptr<ooasm::Instruction> sub(std::unique_ptr<ooasm::LValue> arg1, std::unique_ptr<ooasm::RValue> arg2);
+std::shared_ptr<ooasm::Instruction> sub(std::unique_ptr<ooasm::LValue> arg1,
+        std::unique_ptr<ooasm::RValue> arg2);
 
 std::shared_ptr<ooasm::Instruction> inc(std::unique_ptr<ooasm::LValue> arg);
 

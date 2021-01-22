@@ -7,6 +7,7 @@
 
 namespace computer {
     using ooasm::Instruction;
+
     class Processor : public ProcessorAbstract {
     public:
         explicit Processor(Memory &_mem) : ProcessorAbstract(_mem) {}

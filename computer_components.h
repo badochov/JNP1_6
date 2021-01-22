@@ -61,7 +61,7 @@ namespace computer {
 
         class TooManyVariablesException : public std::exception {
             [[nodiscard]] const char *what() const noexcept override {
-                return "To many variables declarations!";
+                return "Too many variable declarations!";
             }
         };
 

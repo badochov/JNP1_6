@@ -3,23 +3,22 @@
 
 namespace ooasm {
     class Data : public Instruction {
-        ID id;
-        const std::unique_ptr<Num> value;
-
     public:
-        Data(ID::id_t _id, std::unique_ptr<Num> _value) : id(_id), value(std::move(_value)) {}
+        Data(ID::id_t _id, std::unique_ptr<Num> _value)
+            : id(_id), value(std::move(_value)) {}
 
         void execute(ProcessorAbstract &, Memory &) const override {}
 
         void declare(Memory &memory) const override {
             memory.add_variable(id.get(), value->get(memory));
         }
+
+    private:
+        ID id;
+        const std::unique_ptr<Num> value;
     };
 
     class Mov : public Instruction {
-        const std::unique_ptr<LValue> dst;
-        const std::unique_ptr<RValue> src;
-
     public:
         Mov(std::unique_ptr<LValue> _dst, std::unique_ptr<RValue> _src)
                 : dst(std::move(_dst)), src(std::move(_src)) {}
@@ -27,12 +26,13 @@ namespace ooasm {
         void execute(ProcessorAbstract &, Memory &memory) const override {
             dst->set(memory, src->get(memory));
         }
+
+    private:
+        const std::unique_ptr<LValue> dst;
+        const std::unique_ptr<RValue> src;
     };
 
     class ArithmeticOperation : public Instruction {
-        const std::unique_ptr<LValue> arg1;
-        const std::unique_ptr<RValue> arg2;
-
     public:
         void execute(ProcessorAbstract &processorAbstract, Memory &memory) const override {
             word_t res = function(arg1->get(memory), arg2->get(memory));
@@ -47,6 +47,9 @@ namespace ooasm {
                 : arg1(std::move(_arg1)), arg2(std::move(_arg2)) {}
 
     private:
+        const std::unique_ptr<LValue> arg1;
+        const std::unique_ptr<RValue> arg2;
+
         void set_value(word_t res, Memory &memory) const {
             arg1->set(memory, res);
         }
@@ -83,7 +86,6 @@ namespace ooasm {
     };
 
     class One : public Instruction {
-        std::unique_ptr<LValue> lValue;
     public:
         explicit One(std::unique_ptr<LValue> _lValue) : lValue(std::move(_lValue)) {}
 
@@ -96,10 +98,12 @@ namespace ooasm {
         ~One() override = default;
 
     protected:
-
-        [[nodiscard]]  virtual bool should_set(const ProcessorAbstract &) const {
+        [[nodiscard]] virtual bool should_set(const ProcessorAbstract &) const {
             return true;
         }
+
+    private:
+        std::unique_ptr<LValue> lValue;
     };
 
     class OneZ : public One {
