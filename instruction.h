@@ -3,12 +3,18 @@
 
 #include "computer_components.h"
 
-class Instruction {
-public:
-    virtual ~Instruction() = default;
-    virtual void execute(ProcessorAbstract &, Memory &) const = 0;
+namespace ooasm {
+    using computer::ProcessorAbstract;
+    using computer::Memory;
 
-    virtual void declare(Memory &) const {};
-};
+    class Instruction {
+    public:
+        virtual ~Instruction() = default;
+
+        virtual void execute(ProcessorAbstract &, Memory &) const = 0;
+
+        virtual void declare(Memory &) const {};
+    };
+}
 
 #endif //JNP1_6_INSTRUCTION_H
