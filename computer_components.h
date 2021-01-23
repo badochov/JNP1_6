@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <unordered_map>
-#include <string_view>
+#include <string>
 
 namespace computer {
     class Memory {
@@ -11,7 +11,7 @@ namespace computer {
         using word_t = int64_t;
         using address_t = uint64_t;
         using mem_size_t = uint64_t;
-        using id_t = std::string_view;
+        using id_t = std::string;
 
         explicit Memory(mem_size_t size) : _size(size), mem(std::make_unique<mem_t>(size)) {
             for (mem_size_t i = 0; i < _size; ++i) {
@@ -33,11 +33,11 @@ namespace computer {
             mem[i] = new_val;
         }
 
-        [[nodiscard]] address_t get_variable_address(id_t var_name) const {
+        [[nodiscard]] address_t get_variable_address(const id_t &var_name) const {
             return vars.at(var_name);
         }
 
-        void add_variable(id_t var_name, word_t word) {
+        void add_variable(const id_t &var_name, word_t word) {
             if (variables_count == size()) {
                 throw TooManyVariablesException();
             }
@@ -69,7 +69,7 @@ namespace computer {
         mem_size_t _size;
         mem_size_t variables_count = 0;
         std::unique_ptr<mem_t> mem;
-        std::unordered_map<std::string_view, mem_size_t> vars;
+        std::unordered_map<id_t, mem_size_t> vars;
 
     };
 
