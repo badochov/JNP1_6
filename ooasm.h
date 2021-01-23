@@ -25,6 +25,7 @@ namespace ooasm {
         [[nodiscard]] iterator end() const {
             return ins.end();
         }
+
     private:
         ins_t ins;
     };
@@ -42,17 +43,17 @@ namespace ooasm {
                 throw InvalidId();
             }
 
-            id = std::make_unique<Memory::id_t>(_id);
+            id = Memory::id_t(_id);
         }
 
-        [[nodiscard]] Memory::id_t get() const {
-            return *id;
+        [[nodiscard]]  Memory::id_t get() const {
+            return id;
         }
 
     private:
         constexpr static size_t MAX_LEN = 10;
         constexpr static size_t MIN_LEN = 1;
-        std::unique_ptr<Memory::id_t> id;
+        Memory::id_t id;
 
         class InvalidId : public std::exception {
             [[nodiscard]] const char *what() const noexcept override {
@@ -61,12 +62,7 @@ namespace ooasm {
         };
     };
 
-    class Value {
-    public:
-        virtual ~Value() = default;
-    };
-
-    class RValue : public Value {
+    class RValue {
     public:
         [[nodiscard]] virtual word_t get(const Memory &) const = 0;
 
@@ -111,6 +107,7 @@ namespace ooasm {
         [[nodiscard]] word_t get(const Memory &) const override {
             return num;
         }
+
     private:
         word_t num;
     };
@@ -126,6 +123,7 @@ namespace ooasm {
         [[nodiscard]] word_t get(const Memory &memory) const override {
             return get_address(memory);
         }
+
     private:
         ID id;
     };
@@ -140,13 +138,13 @@ std::unique_ptr<ooasm::LEA> lea(ooasm::ID::id_t id);
 std::shared_ptr<ooasm::Instruction> data(ooasm::ID::id_t id, std::unique_ptr<ooasm::Num> value);
 
 std::shared_ptr<ooasm::Instruction> mov(std::unique_ptr<ooasm::LValue> dst,
-        std::unique_ptr<ooasm::RValue> src);
+                                        std::unique_ptr<ooasm::RValue> src);
 
 std::shared_ptr<ooasm::Instruction> add(std::unique_ptr<ooasm::LValue> arg1,
-        std::unique_ptr<ooasm::RValue> arg2);
+                                        std::unique_ptr<ooasm::RValue> arg2);
 
 std::shared_ptr<ooasm::Instruction> sub(std::unique_ptr<ooasm::LValue> arg1,
-        std::unique_ptr<ooasm::RValue> arg2);
+                                        std::unique_ptr<ooasm::RValue> arg2);
 
 std::shared_ptr<ooasm::Instruction> inc(std::unique_ptr<ooasm::LValue> arg);
 
