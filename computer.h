@@ -26,6 +26,8 @@ namespace computer {
         explicit Computer(size_t mem_size) : mem(mem_size), proc(mem) {}
 
         void boot(const ooasm::Program &p) {
+            mem.wipe();
+
             for (const std::shared_ptr<Instruction> &ins : p) {
                 proc.declare(*ins);
             }

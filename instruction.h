@@ -7,6 +7,7 @@ namespace ooasm {
     using computer::ProcessorAbstract;
     using computer::Memory;
 
+    // Abstract class showing interface of any ooasm instruction.
     class Instruction {
     public:
         virtual ~Instruction() = default;
