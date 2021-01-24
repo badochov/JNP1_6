@@ -5,9 +5,11 @@
 #include <ostream>
 #include "computer_components.h"
 
+// Implementation detail namespace concerning computer abstraction parts.
 namespace computer {
     using ooasm::Instruction;
 
+    // Derived class for processor with operations on ooasm instructions.
     class Processor : public ProcessorAbstract {
     public:
         explicit Processor(Memory &_mem) : ProcessorAbstract(_mem) {}
@@ -21,6 +23,7 @@ namespace computer {
         }
     };
 
+    // Class for abstract computer being environment of ooasm execution.
     class Computer {
     public:
         explicit Computer(size_t mem_size) : mem(mem_size), proc(mem) {}

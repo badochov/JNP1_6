@@ -6,6 +6,7 @@
 #include <string>
 
 namespace computer {
+    // Class for memory storing data on which ooasm instructions operate.
     class Memory {
     public:
         using word_t = int64_t;
@@ -82,6 +83,7 @@ namespace computer {
 
     };
 
+    // Base class for processor, introduced in order to avoid circular file dependency.
     class ProcessorAbstract {
     public:
         using flag_t = bool;
