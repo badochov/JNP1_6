@@ -42,7 +42,7 @@ namespace ooasm {
             set_value(res, memory);
         }
 
-        ~ArithmeticOperation() override = default;
+        virtual ~ArithmeticOperation() = default;
 
     protected:
         ArithmeticOperation(std::unique_ptr<LValue> _arg1, std::unique_ptr<RValue> _arg2)
