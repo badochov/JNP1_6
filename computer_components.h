@@ -52,6 +52,15 @@ namespace computer {
             return _size;
         }
 
+        void wipe() {
+            for (address_t i = 0; i < size(); i++) {
+                mem[i] = 0;
+            }
+
+            vars.clear();
+            variables_count = 0;
+        }
+
     private:
         class OutOfRangeMemoryAccessException : public std::exception {
             [[nodiscard]] const char *what() const noexcept override {
