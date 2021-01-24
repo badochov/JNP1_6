@@ -6,12 +6,12 @@
 #include "instruction.h"
 #include <iterator>
 
-// Implementation detail namespace.
+// Implementation detail namespace concerning ooasm language.
 namespace ooasm {
     using word_t = Memory::word_t;
     using address_t = Memory::address_t;
 
-    // Program class used to create program.
+    // Program class used to create a program consisting of ooasm instructions.
     class Program {
         using ins_t = const std::vector<std::shared_ptr<Instruction>>;
     public:

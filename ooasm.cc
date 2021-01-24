@@ -33,7 +33,7 @@ namespace ooasm {
     };
 
     // Abstract class for handling any arithmetic operation performed in ooasm.
-    // Deriving classes should overwrite function function to choose performed operation.
+    // Deriving classes should overwrite the method <function> to choose performed operation.
     class ArithmeticOperation : public Instruction {
     public:
         void execute(ProcessorAbstract &processorAbstract, Memory &memory) const override {
@@ -42,7 +42,7 @@ namespace ooasm {
             set_value(res, memory);
         }
 
-        ~ArithmeticOperation() override = default;
+        virtual ~ArithmeticOperation() = default;
 
     protected:
         ArithmeticOperation(std::unique_ptr<LValue> _arg1, std::unique_ptr<RValue> _arg2)
