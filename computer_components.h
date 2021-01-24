@@ -53,7 +53,7 @@ namespace computer {
         }
 
         void wipe() {
-            for (address_t i = 0; i < size(); i++) {
+            for (mem_size_t i = 0; i < size(); i++) {
                 mem[i] = 0;
             }
 
