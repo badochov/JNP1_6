@@ -32,6 +32,8 @@ namespace ooasm {
         const std::unique_ptr<RValue> src;
     };
 
+    // Abstract class for handling any arithmetic operation performed in ooasm.
+    // Deriving classes should overwrite function function to choose performed operation.
     class ArithmeticOperation : public Instruction {
     public:
         void execute(ProcessorAbstract &processorAbstract, Memory &memory) const override {
@@ -59,6 +61,7 @@ namespace ooasm {
             processorAbstract.setZF(res == 0);
         }
 
+        // Function to be applied on given values.
         [[nodiscard]] virtual word_t function(word_t a1, word_t a2) const = 0;
     };
 
@@ -85,6 +88,8 @@ namespace ooasm {
         }
     };
 
+    // Base class for setting one at given position.
+    // Deriving classes should override should_set function to choose when 1 should be set.
     class One : public Instruction {
     public:
         explicit One(std::unique_ptr<LValue> _lValue) : lValue(std::move(_lValue)) {}
